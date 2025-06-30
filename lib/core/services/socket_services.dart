@@ -1,11 +1,16 @@
+import 'dart:io';
+
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+
+import '../constants/network_config.dart';
 
 class SocketService {
   late IO.Socket socket;
 
   void connect() {
+    final baseUrl = Platform.isAndroid ? emulatorIP : localIP;
     socket = IO.io(
-      'http://10.0.2.2:5000',
+      'http://$baseUrl:5000',
       IO.OptionBuilder()
         .setTransports(['websocket'])
         .disableAutoConnect()
@@ -29,5 +34,5 @@ class SocketService {
   void dispose() {
     socket.dispose();
   }
-  
+
 }

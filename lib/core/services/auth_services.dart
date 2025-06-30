@@ -2,11 +2,11 @@ import 'package:dio/dio.dart';
 import 'package:simple_talk/core/services/dio_client.dart';
 
 class AuthServices {
-  final Dio _dio = DioClient.dio;
+  final dioClient = DioClient();
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     try{
-      final response = await _dio.post(
+      final response = await dioClient.dio.post(
         'api/auth/login',
         data: {
           'email': email,
@@ -25,7 +25,7 @@ class AuthServices {
 
   Future<Map<String, dynamic>> register(String name, String email, String password) async {
     try {
-      final response = await _dio.post(
+      final response = await dioClient.dio.post(
         'api/auth/register',
         data: {
           'name': name,
@@ -45,7 +45,7 @@ class AuthServices {
 
   Future<void> deleteAccount() async {
     try{
-      final response = await _dio.delete('api/auth/delete');
+      final response = await dioClient.dio.delete('api/auth/delete');
       print('Akun berhasil dihapus: ${response.data}');
     } on DioException catch (e) {
       final data = e.response?.data;
