@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_talk/core/services/shared_preference_service.dart';
 
+import '../../core/services/socket_services.dart';
 import '../viewmodels/auth_viewmodel.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -18,13 +19,29 @@ class _HomeScreenState extends State<HomeScreen> {
     {"text": "Lagi ngapain?", "isMe": true},
     {"text": "Ngoding flutter nih", "isMe": false},
   ];
+
   final TextEditingController messageController = TextEditingController();
   final _viewModel = DeleteViewModel();
+  final socketService = SocketService();
 
   @override
   void dispose() {
     messageController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    socketService.connect();
+    socketService.onMessage((data) {
+      setState(() {
+        messages.add({
+          "text": data['message'],
+          "isMe": false,
+        });
+      });
+    });
   }
 
   @override
@@ -140,12 +157,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           icon: Icon(Icons.send),
                           onPressed: () {
                             if (messageController.text.trim().isNotEmpty) {
+                              final messageText = messageController.text.trim();
+
                               setState(() {
                                 messages.add({
-                                  "text": messageController.text.trim(),
+                                  "text": messageText,
                                   "isMe": true,
                                 });
                               });
+                              socketService.sendMessage(messageText);
                               messageController.clear();
                             }
                           },
