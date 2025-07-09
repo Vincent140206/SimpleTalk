@@ -19,7 +19,6 @@ class LoginViewModel {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', token);
       await prefs.setString('userId', userId);
-
       await SocketService().initSocket();
 
       return true;
