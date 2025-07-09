@@ -1,38 +1,95 @@
 import 'dart:io';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
-
 import '../constants/network_config.dart';
 
 class SocketService {
-  late IO.Socket socket;
+  static final SocketService _instance = SocketService._internal();
 
-  void connect() {
+  factory SocketService() => _instance;
+
+  SocketService._internal();
+
+  IO.Socket? socket;
+
+  Future<void> initSocket() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('userId');
+
+    if (userId == null || userId.isEmpty) {
+      print("❗ User ID not found, socket tidak diinisialisasi.");
+      return;
+    }
+
     final baseUrl = Platform.isAndroid ? emulatorIP : localIP;
+
     socket = IO.io(
       'http://$baseUrl:5000',
       IO.OptionBuilder()
-        .setTransports(['websocket'])
-        .disableAutoConnect()
-        .build(),
+          .setTransports(['websocket'])
+          .disableAutoConnect()
+          .build(),
     );
 
-    socket.connect();
+    socket!.onConnect((_) {
+      print('✅ Connected to server');
+      joinRoom(userId);
+    });
 
-    socket.onConnect((_) => print('Connected to server'));
-    socket.onDisconnect((_) => print('Disconnected from server'));
+    socket!.onDisconnect((_) => print('❌ Disconnected'));
+
+    socket!.on('joinRoomSuccess', (data) {
+      print('🎉 Join room success: $data');
+    });
+
+    socket!.on('PrivateMessage', (data) {
+      print('📩 Private message received: $data');
+    });
+
+    socket!.on('receiveMessage', (data) {
+      print('📢 Broadcast message: $data');
+    });
+
+    socket!.onConnectError((e) => print('⚠️ Connect error: $e'));
+    socket!.onError((e) => print('❌ Socket error: $e'));
+
+    socket!.connect();
   }
 
-  void sendMessage(String message) {
-    socket.emit('sendMessage', {'message': message});
+  void joinRoom(String userId) {
+    if (_isSocketReady) {
+      socket!.emit('joinRoom', {'userId': userId});
+    }
   }
 
-  void onMessage(Function(dynamic) callback) {
-    socket.on('receiveMessage', callback);
+  void sendPrivateMessage(String toUserId, String message) {
+    if (_isSocketReady) {
+      socket!.emit('PrivateMessage', {'to': toUserId, 'message': message});
+    }
+  }
+
+  void sendBroadcastMessage(String message) {
+    if (_isSocketReady) {
+      socket!.emit('sendMessage', {'message': message});
+    }
+  }
+
+  void leaveRoom(String roomId) {
+    if (_isSocketReady) socket!.emit('leaveRoom', roomId);
+  }
+
+  void getRoomInfo(String roomId) {
+    if (_isSocketReady) socket!.emit('getRoomInfo', roomId);
+  }
+
+  void disconnect() {
+    socket?.disconnect();
   }
 
   void dispose() {
-    socket.dispose();
+    socket?.dispose();
+    socket = null;
   }
 
+  bool get _isSocketReady => socket != null && socket!.connected;
 }

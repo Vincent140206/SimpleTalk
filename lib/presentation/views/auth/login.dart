@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/services/socket_services.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -12,7 +13,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-  final _viewModel = LoginViewModel();
+  final _viewModel = LoginViewModel(SocketService());
 
   @override
   Widget build(BuildContext context) {
