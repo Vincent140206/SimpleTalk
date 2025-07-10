@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../constants/network_config.dart';
+import 'package:intl/intl.dart';
 
 class SocketService {
   static final SocketService _instance = SocketService._internal();
@@ -11,6 +12,15 @@ class SocketService {
   SocketService._internal();
 
   IO.Socket? socket;
+
+  String formatTimestamp(String isoDate) {
+    try {
+      final dateTime = DateTime.parse(isoDate).toLocal();
+      return DateFormat('HH:mm').format(dateTime);
+    } catch (e) {
+      return isoDate;
+    }
+  }
 
   Future<void> initSocket() async {
     final prefs = await SharedPreferences.getInstance();

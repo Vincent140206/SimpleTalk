@@ -14,15 +14,16 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<Map<String, dynamic>> messages = [
-    {"text": "Halo!", "isMe": true},
-    {"text": "Hai juga!", "isMe": false},
-    {"text": "Lagi ngapain?", "isMe": true},
-    {"text": "manceng", "isMe": false},
+    {"text": "Halo!", "isMe": true, "timestamp": DateTime.now().toIso8601String().substring(0, 10)},
+    {"text": "Hai juga!", "isMe": false, "timestamp": DateTime.now().toIso8601String().substring(0, 10)},
+    {"text": "Lagi ngapain?", "isMe": true, "timestamp": DateTime.now().toIso8601String().substring(0, 10)},
+    {"text": "manceng", "isMe": false, "timestamp": DateTime.now().toIso8601String().substring(0, 10)},
   ];
   final TextEditingController messageController = TextEditingController();
   final _viewModel = DeleteViewModel();
   final TextEditingController targetUserController = TextEditingController();
   final socketService = SocketService();
+
 
   @override
   @override
@@ -36,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
           messages.add({
             "text": data['message'],
             "isMe": false,
+            "timestamp": socketService.formatTimestamp(data['timestamp'] ?? DateTime.now().toIso8601String()),
           });
         });
       });
@@ -46,6 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
           messages.add({
             "text": data['message'],
             "isMe": false,
+            "timestamp": socketService.formatTimestamp(data['timestamp'] ?? DateTime.now().toIso8601String()),
           });
         });
       });
@@ -167,7 +170,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                   : Colors.grey[300],
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Text(msg['text']),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Text(msg['text'], textAlign: TextAlign.start,),
+                                Text(socketService.formatTimestamp(msg['timestamp'] ?? DateTime.now().toIso8601String()),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.black54,
+                                    )
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       },
