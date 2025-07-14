@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:simple_talk/presentation/views/contacts.dart';
 
 import '../../../core/services/socket_services.dart';
 import '../../viewmodels/auth_viewmodel.dart';
@@ -38,12 +40,17 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             SizedBox(height: 50,),
             ElevatedButton(
-                onPressed: (){
+                onPressed: () async {
                   final email = emailController.text;
                   final password = passwordController.text;
-                  _viewModel.login(email, password).then((success) {
+                  _viewModel.login(email, password).then((success) async {
                     if (success) {
-                      Navigator.pushReplacementNamed(context, '/home');
+                      final prefs = await SharedPreferences.getInstance();
+                      final userId = prefs.getString('userId');
+                      Navigator.pushReplacement(
+                          context, MaterialPageRoute(
+                          builder: (context) => ContactScreen(userId: userId!)
+                      ));
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Login gagal')),

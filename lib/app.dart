@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:simple_talk/presentation/views/auth/login.dart';
 import 'package:simple_talk/presentation/views/auth/register.dart';
 import 'package:simple_talk/presentation/views/chat.dart';
+import 'package:simple_talk/presentation/views/contacts.dart';
 import 'package:simple_talk/presentation/views/home.dart';
 
 class MyApp extends StatelessWidget {
