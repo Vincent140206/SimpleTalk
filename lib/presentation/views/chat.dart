@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/services/message_services.dart';
 import '../../core/services/socket_services.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -18,15 +20,16 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  final messageService = MessageService();
   final TextEditingController messageController = TextEditingController();
   final SocketService socketService = SocketService();
 
-  final List<Map<String, dynamic>> messages = [];
+  late List<Map<String, dynamic>> messages = [];
 
   @override
   void initState() {
     super.initState();
-
+    loadMessages();
     socketService.addPrivateMessageListener((data) {
       if (!mounted) return;
 
@@ -44,18 +47,38 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  Future<void> loadMessages() async {
+    try {
+      final fetchedMessages = await messageService.fetchMessages(
+        widget.contactId,
+      );
+      final prefs = await SharedPreferences.getInstance();
+      final myUserId = prefs.getString('userId');
+
+      setState(() {
+        messages = fetchedMessages.map((msg) {
+          return {
+            "text": msg['message'],
+            "isMe": msg['from'] == myUserId,
+            "timestamp": socketService.formatTimestamp(msg['timestamp']),
+          };
+        }).toList();
+      });
+    } catch (e) {
+      print('Error loading messages: $e');
+    }
+  }
+
   @override
   void dispose() {
     messageController.dispose();
-    socketService.removePrivateMessageListener(
-      (data) {
-        if (data['from'] == widget.contactId) {
-          setState(() {
-            messages.removeWhere((msg) => msg['text'] == data['message']);
-          });
-        }
-      },
-    );
+    socketService.removePrivateMessageListener((data) {
+      if (data['from'] == widget.contactId) {
+        setState(() {
+          messages.removeWhere((msg) => msg['text'] == data['message']);
+        });
+      }
+    });
     super.dispose();
   }
 
@@ -81,7 +104,23 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.contactName)),
+      appBar: AppBar(title: Row(
+        children: [
+          Text(widget.contactName),
+          Spacer(),
+          ElevatedButton(onPressed: () async {
+            await messageService.deleteChatHistory(widget.contactId);
+            setState(() {
+              messages.clear();
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Chat berhasil dihapus")),
+            );
+          },
+              child: Text('Hapus Chat')
+          )
+        ],
+      )),
       body: Column(
         children: [
           Expanded(
@@ -131,10 +170,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   onSubmitted: (_) => sendMessage(),
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.send),
-                onPressed: sendMessage,
-              ),
+              IconButton(icon: const Icon(Icons.send), onPressed: sendMessage),
             ],
           ),
         ],

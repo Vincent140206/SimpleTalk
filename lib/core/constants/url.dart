@@ -8,4 +8,7 @@ class Urls {
   // Contact URLs
   static const String addContacts = '/api/contacts/add';
   static const String getContacts = '/api/contacts/';
+
+  // Message URL
+  static const String fetchMessage = '/api/messages';
 }
