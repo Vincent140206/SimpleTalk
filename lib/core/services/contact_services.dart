@@ -12,18 +12,17 @@ class ContactServices {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
-      print("Token: $token");
       final response = await dioClient.dio.get(
-          '${Urls.getContacts}/$userId',
-          options: Options(
-              headers: {
-                'Authorization': 'Bearer $token',
-              }
-          )
+        '${Urls.getContacts}/$userId',
+        options: Options(headers: {
+          'Authorization': 'Bearer $token',
+        }),
       );
 
-      if (response.statusCode == 200) {
-        final List data = response.data['contacts'];
+      print('Response: ${response.data}');
+
+      if (response.statusCode == 200 && response.data != null) {
+        final List data = response.data['contacts'] ?? [];
         return data.map((json) => ContactModel.fromJson(json)).toList();
       } else {
         throw Exception('Gagal mengambil kontak');

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:simple_talk/core/services/contact_services.dart';
+import '../../core/services/shared_preference_service.dart';
 import '../../data/models/contact_model.dart';
 
 class ContactScreen extends StatefulWidget {
@@ -93,7 +94,7 @@ class _ContactScreenState extends State<ContactScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('Kontak Saya')),
       body: FutureBuilder<List<ContactModel>>(
-        future: ContactServices().fetchContacts(widget.userId),
+        future: _contactServices.fetchContacts(widget.userId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -120,6 +121,26 @@ class _ContactScreenState extends State<ContactScreen> {
         onPressed: _showAddContactDialog,
         child: Icon(Icons.add),
         tooltip: 'Tambah Kontak',
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: ElevatedButton(
+          onPressed: () {
+            SharedPrefService.clear().then((success) {
+              if (success) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Logout berhasil')),
+                );
+                Navigator.pushReplacementNamed(context, '/register');
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Logout gagal')),
+                );
+              }
+            });
+          },
+          child: Text('Logout'),
+        ),
       ),
     );
   }
