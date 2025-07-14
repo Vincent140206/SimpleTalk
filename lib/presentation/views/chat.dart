@@ -18,52 +18,64 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  late final TextEditingController messageController;
-  late final SocketService socketService;
+  final TextEditingController messageController = TextEditingController();
+  final SocketService socketService = SocketService();
+
   final List<Map<String, dynamic>> messages = [];
 
   @override
   void initState() {
     super.initState();
-    messageController = TextEditingController();
-    socketService = SocketService();
 
-    socketService.socket?.off('PrivateMessage');
-    socketService.socket?.on('PrivateMessage', (data) {
+    socketService.addPrivateMessageListener((data) {
       if (!mounted) return;
-      print('Private message received: $data');
-      setState(() {
-        messages.add({
-          "text": data['message'],
-          "isMe": false,
-          "timestamp": socketService.formatTimestamp(
-            data['timestamp'] ?? DateTime.now().toIso8601String(),
-          ),
+
+      if (data['from'] == widget.contactId) {
+        setState(() {
+          messages.add({
+            "text": data['message'],
+            "isMe": false,
+            "timestamp": socketService.formatTimestamp(
+              data['timestamp'] ?? DateTime.now().toIso8601String(),
+            ),
+          });
         });
-      });
+      }
     });
   }
 
   @override
   void dispose() {
     messageController.dispose();
-    socketService.socket?.off('PrivateMessage');
+    socketService.removePrivateMessageListener(
+      (data) {
+        if (data['from'] == widget.contactId) {
+          setState(() {
+            messages.removeWhere((msg) => msg['text'] == data['message']);
+          });
+        }
+      },
+    );
     super.dispose();
   }
 
   void sendMessage() {
     final text = messageController.text.trim();
-    if (text.isEmpty) return;
+    if (text.isNotEmpty) {
+      socketService.sendPrivateMessage(widget.contactId, text);
 
-    socketService.sendPrivateMessage(widget.contactId, text);
-    setState(() {
-      messages.add({
-        "text": text,
-        "isMe": true,
-        "timestamp": socketService.formatTimestamp(DateTime.now().toIso8601String()),
+      setState(() {
+        messages.add({
+          "text": text,
+          "isMe": true,
+          "timestamp": socketService.formatTimestamp(
+            DateTime.now().toIso8601String(),
+          ),
+        });
       });
-    });
-    messageController.clear();
+
+      messageController.clear();
+    }
   }
 
   @override
@@ -74,14 +86,15 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.all(8),
               itemCount: messages.length,
               itemBuilder: (_, index) {
                 final msg = messages[index];
                 return Align(
-                  alignment: msg['isMe'] ? Alignment.centerRight : Alignment.centerLeft,
+                  alignment: msg['isMe']
+                      ? Alignment.centerRight
+                      : Alignment.centerLeft,
                   child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    margin: const EdgeInsets.all(8),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: msg['isMe'] ? Colors.blue[100] : Colors.grey[300],
@@ -93,7 +106,10 @@ class _ChatScreenState extends State<ChatScreen> {
                         Text(msg['text']),
                         Text(
                           msg['timestamp'],
-                          style: const TextStyle(fontSize: 10, color: Colors.black54),
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Colors.black54,
+                          ),
                         ),
                       ],
                     ),
@@ -102,28 +118,24 @@ class _ChatScreenState extends State<ChatScreen> {
               },
             ),
           ),
-          const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: messageController,
-                    decoration: const InputDecoration(
-                      hintText: 'Ketik pesan...',
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    ),
+          const Divider(),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: messageController,
+                  decoration: const InputDecoration(
+                    hintText: 'Ketik pesan...',
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12),
                   ),
+                  onSubmitted: (_) => sendMessage(),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: sendMessage,
-                ),
-              ],
-            ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.send),
+                onPressed: sendMessage,
+              ),
+            ],
           ),
         ],
       ),
