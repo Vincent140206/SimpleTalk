@@ -110,8 +110,20 @@ class _ContactScreenState extends State<ContactScreen> {
             itemBuilder: (context, index) {
               final contact = contacts[index];
               return ListTile(
-                title: Text(contact.user.email),
-                subtitle: Text('ID: ${contact.user.id}'),
+                title: Text(contact.user.name),
+                subtitle: Text('ID: ${contact.user.id}\nEmail: ${contact.user.email}'),
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/chat',
+                    arguments: {
+                      'contactId': contact.user.id,
+                      'contactName': contact.user.name,
+                      'contactEmail': contact.user.email,
+
+                    },
+                  );
+                },
               );
             },
           );

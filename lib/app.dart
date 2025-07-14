@@ -18,11 +18,22 @@ class MyApp extends StatelessWidget {
             fontFamily: 'Roboto'
       ),
       home: RegisterScreen(),
+      onGenerateRoute: (settings) {
+        if (settings.name == '/chat') {
+          final args = settings.arguments as Map<String, dynamic>;
+          return MaterialPageRoute(
+            builder: (context) => ChatScreen(
+              contactId: args['contactId'],
+              contactName: args['contactName'],
+              contactEmail: args['contactEmail'],
+            ),
+          );
+        }
+        return null;
+      },
       routes: {
         '/login': (context) => LoginScreen(),
-        '/home': (context) => HomeScreen(),
         '/register': (context) => RegisterScreen(),
-        '/chat': (context) => ChatScreen(),
       },
     );
   }
