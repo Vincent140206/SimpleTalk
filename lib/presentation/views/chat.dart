@@ -7,14 +7,14 @@ class ChatScreen extends StatefulWidget {
   final String contactId;
   final String contactName;
   final String contactEmail;
-  final String contactProfile;
+  final String? contactProfile;
 
   const ChatScreen({
     super.key,
     required this.contactId,
     required this.contactName,
     required this.contactEmail,
-    required this.contactProfile,
+    this.contactProfile,
   });
 
   @override
@@ -110,7 +110,7 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           CircleAvatar(
             radius: 20,
-            backgroundImage: NetworkImage(widget.contactProfile),
+              backgroundImage: NetworkImage(widget.contactProfile ?? 'https://sukafakta.com/wp-content/uploads/2024/06/Fakta-Unik-Monyet-Si-Cerdas-yang-Tahan-Banting-.webp')
           ),
           SizedBox(width: 10,),
           Text(widget.contactName),
@@ -130,6 +130,7 @@ class _ChatScreenState extends State<ChatScreen> {
       )),
       body: Column(
         children: [
+          const SizedBox(height: 20),
           Expanded(
             child: ListView.builder(
               itemCount: messages.length,

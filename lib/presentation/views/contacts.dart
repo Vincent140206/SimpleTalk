@@ -75,7 +75,7 @@ class _ContactScreenState extends State<ContactScreen> {
                     email,
                   );
                   Navigator.of(context).pop();
-                  _loadContacts(); // refresh
+                  _loadContacts();
                 } catch (e) {
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -94,50 +94,71 @@ class _ContactScreenState extends State<ContactScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Kontak Saya')),
-      body: FutureBuilder<List<ContactModel>>(
-        future: _contactServices.fetchContacts(widget.userId),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Gagal: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('Belum ada kontak'));
-          }
-
-          final contacts = snapshot.data!;
-          return ListView.builder(
-            itemCount: contacts.length,
-            itemBuilder: (context, index) {
-              final contact = contacts[index];
-              return ListTile(
-                leading: contact.user.photoProfile != null
-                    ? CircleAvatar(
-                  backgroundImage: NetworkImage(contact.user.photoProfile!),
-                  radius: 25,
-                )
-                    : const CircleAvatar(
-                  child: Icon(Icons.person),
-                  radius: 25,
-                ),
-                title: Text(contact.user.name),
-                subtitle: Text('ID: ${contact.user.id}\nEmail: ${contact.user.email}'),
-                onTap: () {
-                  Navigator.pushNamed(
-                    context,
-                    '/chat',
-                    arguments: {
-                      'contactId': contact.user.id,
-                      'contactName': contact.user.name,
-                      'contactEmail': contact.user.email,
-                      'contactProfile': contact.user.photoProfile,
-                    },
-                  );
-                },
-              );
-            },
-          );
+      body: RefreshIndicator(
+        onRefresh: () async {
+          _loadContacts();
+          await futureContacts;
         },
+        child: FutureBuilder<List<ContactModel>>(
+          future: futureContacts,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return ListView(
+                children: [
+                  Center(child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text('Gagal: ${snapshot.error}'),
+                  ))
+                ],
+              );
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return ListView(
+                children: const [
+                  Center(child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text('Belum ada kontak'),
+                  ))
+                ],
+              );
+            }
+
+            final contacts = snapshot.data!;
+            return ListView.builder(
+              itemCount: contacts.length,
+              itemBuilder: (context, index) {
+                final contact = contacts[index];
+                return ListTile(
+                  leading: contact.user.photoProfile != null
+                      ? CircleAvatar(
+                    backgroundImage: NetworkImage(contact.user.photoProfile!),
+                    radius: 25,
+                  )
+                      : const CircleAvatar(
+                    child: Icon(Icons.person),
+                    radius: 25,
+                  ),
+                  title: Text(contact.user.name),
+                  subtitle: Text(
+                      'ID: ${contact.user.id}\nEmail: ${contact.user.email}'),
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/chat',
+                      arguments: {
+                        'contactId': contact.user.id,
+                        'contactName': contact.user.name,
+                        'contactEmail': contact.user.email,
+                        'contactProfile': contact.user.photoProfile,
+                      },
+                    );
+                  },
+                );
+              },
+            );
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddContactDialog,
@@ -168,7 +189,8 @@ class _ContactScreenState extends State<ContactScreen> {
             Spacer(),
             ElevatedButton(
                 onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen()));
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => ProfileScreen()));
                 }, child: Text('Profile')
             )
           ],
