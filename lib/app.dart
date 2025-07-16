@@ -4,6 +4,7 @@ import 'package:simple_talk/presentation/views/auth/register.dart';
 import 'package:simple_talk/presentation/views/chat.dart';
 import 'package:simple_talk/presentation/views/contacts.dart';
 import 'package:simple_talk/presentation/views/home.dart';
+import 'package:simple_talk/presentation/views/splashscreen.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -17,7 +18,7 @@ class MyApp extends StatelessWidget {
         primaryColor: const Color(0xFFE7CCB1),
             fontFamily: 'Roboto'
       ),
-      home: RegisterScreen(),
+      home: SplashScreen(),
       onGenerateRoute: (settings) {
         if (settings.name == '/chat') {
           final args = settings.arguments as Map<String, dynamic>;
@@ -26,6 +27,7 @@ class MyApp extends StatelessWidget {
               contactId: args['contactId'],
               contactName: args['contactName'],
               contactEmail: args['contactEmail'],
+              contactProfile: args['contactProfile'],
             ),
           );
         }

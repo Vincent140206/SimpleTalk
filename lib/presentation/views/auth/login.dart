@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:simple_talk/presentation/views/auth/register.dart';
 import 'package:simple_talk/presentation/views/contacts.dart';
 
 import '../../../core/services/socket_services.dart';
@@ -59,6 +60,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   });
                 },
                 child: Text('Login')
+            ),
+            SizedBox(height: 20,),
+            ElevatedButton(onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => RegisterScreen()));
+            }, 
+                child: Text('Register')
             )
           ],
         ),

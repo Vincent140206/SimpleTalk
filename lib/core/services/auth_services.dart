@@ -1,10 +1,35 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_talk/core/constants/url.dart';
 import 'package:simple_talk/core/services/dio_client.dart';
+import 'package:simple_talk/presentation/views/contacts.dart';
+
+import '../../presentation/views/auth/login.dart';
 
 class AuthServices {
   final dioClient = DioClient();
   Urls urls = Urls();
+
+  Future<void> checkLoginStatus(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    final userId = prefs.getString('userId');
+
+    if (token != null && userId != null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => ContactScreen(userId: userId)),
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
+    }
+  }
+
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
@@ -17,6 +42,10 @@ class AuthServices {
       );
 
       if (response.statusCode == 200) {
+        final data = response.data;
+        final prefs = await SharedPreferences.getInstance();
+        prefs.setString('token', data['token']);
+        prefs.setString('userId', data['user']['id']);
         return response.data;
       } else {
         throw Exception('Login failed with status: ${response.statusCode}');
@@ -65,4 +94,5 @@ class AuthServices {
       }
     }
   }
+
 }

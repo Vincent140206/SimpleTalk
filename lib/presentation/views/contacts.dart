@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:simple_talk/core/services/contact_services.dart';
+import 'package:simple_talk/presentation/views/profile.dart';
 import '../../core/services/shared_preference_service.dart';
 import '../../data/models/contact_model.dart';
 
@@ -110,6 +111,15 @@ class _ContactScreenState extends State<ContactScreen> {
             itemBuilder: (context, index) {
               final contact = contacts[index];
               return ListTile(
+                leading: contact.user.photoProfile != null
+                    ? CircleAvatar(
+                  backgroundImage: NetworkImage(contact.user.photoProfile!),
+                  radius: 25,
+                )
+                    : const CircleAvatar(
+                  child: Icon(Icons.person),
+                  radius: 25,
+                ),
                 title: Text(contact.user.name),
                 subtitle: Text('ID: ${contact.user.id}\nEmail: ${contact.user.email}'),
                 onTap: () {
@@ -120,7 +130,7 @@ class _ContactScreenState extends State<ContactScreen> {
                       'contactId': contact.user.id,
                       'contactName': contact.user.name,
                       'contactEmail': contact.user.email,
-
+                      'contactProfile': contact.user.photoProfile,
                     },
                   );
                 },
@@ -136,22 +146,32 @@ class _ContactScreenState extends State<ContactScreen> {
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: ElevatedButton(
-          onPressed: () {
-            SharedPrefService.clear().then((success) {
-              if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Logout berhasil')),
-                );
-                Navigator.pushReplacementNamed(context, '/register');
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Logout gagal')),
-                );
-              }
-            });
-          },
-          child: Text('Logout'),
+        child: Row(
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                SharedPrefService.clear().then((success) {
+                  if (success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Logout berhasil')),
+                    );
+                    Navigator.pushReplacementNamed(context, '/register');
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Logout gagal')),
+                    );
+                  }
+                });
+              },
+              child: Text('Logout'),
+            ),
+            Spacer(),
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen()));
+                }, child: Text('Profile')
+            )
+          ],
         ),
       ),
     );

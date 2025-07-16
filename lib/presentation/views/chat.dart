@@ -7,12 +7,14 @@ class ChatScreen extends StatefulWidget {
   final String contactId;
   final String contactName;
   final String contactEmail;
+  final String contactProfile;
 
   const ChatScreen({
     super.key,
     required this.contactId,
     required this.contactName,
     required this.contactEmail,
+    required this.contactProfile,
   });
 
   @override
@@ -106,6 +108,11 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       appBar: AppBar(title: Row(
         children: [
+          CircleAvatar(
+            radius: 20,
+            backgroundImage: NetworkImage(widget.contactProfile),
+          ),
+          SizedBox(width: 10,),
           Text(widget.contactName),
           Spacer(),
           ElevatedButton(onPressed: () async {
