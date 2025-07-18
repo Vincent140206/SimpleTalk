@@ -6,6 +6,7 @@ class Urls {
   static const String register = '/api/auth/register';
   static const String updateProfileImage = '/api/user/update-photo';
   static const String getProfile = '/api/user/profile';
+  static const String deleteProfileImage = '/api/user/delete';
 
   // Contact URLs
   static const String addContacts = '/api/contacts/add';

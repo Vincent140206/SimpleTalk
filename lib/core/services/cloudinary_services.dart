@@ -36,4 +36,35 @@ class CloudinaryServices {
     final picked = await picker.pickImage(source: ImageSource.gallery);
     return picked != null ? File(picked.path) : null;
   }
+
+  Future<bool> deleteImage(String publicId) async {
+    try {
+      final response = await dio.post(
+        Urls.deleteProfileImage,
+        data: {'public_id': publicId},
+      );
+
+      if (response.statusCode == 200) {
+        print('Gambar berhasil dihapus dari server');
+        return true;
+      } else {
+        print('Gagal menghapus gambar: ${response.data}');
+        return false;
+      }
+    } catch (e) {
+      print('Error saat menghapus gambar: $e');
+      return false;
+    }
+  }
+
+
+  String? extractPublicId(String url) {
+    final regex = RegExp(r'/upload/(?:v\d+/)?(.+)\.(jpg|jpeg|png|webp)');
+    final match = regex.firstMatch(url);
+    if (match != null) {
+      return match.group(1);
+    }
+    return null;
+  }
+
 }

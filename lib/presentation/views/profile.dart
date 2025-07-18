@@ -36,13 +36,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       try {
         final uploadedUrl = await cloudinaryService.uploadImage(pickedFile);
         if (uploadedUrl != null) {
-          await userService.updatePhotoProfile(uploadedUrl);
+          await userService.updatePhotoProfile(uploadedUrl, userData?['photoProfile']);
 
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Foto profil berhasil diperbarui')),
           );
 
-          loadUserData(); // Refresh tampilan
+          loadUserData();
         } else {
           throw 'Upload gagal';
         }
