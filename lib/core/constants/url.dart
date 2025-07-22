@@ -4,6 +4,7 @@ class Urls {
   // Authentication and User URLs
   static const String login = '/api/auth/login';
   static const String register = '/api/auth/register';
+  static const String deleteAccount = '/api/auth/delete';
   static const String sendOTP = '/api/auth/send-otp';
   static const String verifyOTP = '/api/auth/verify-otp';
   static const String updateProfileImage = '/api/user/update-photo';

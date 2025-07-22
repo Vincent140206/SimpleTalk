@@ -83,7 +83,7 @@ class AuthServices {
 
   Future<void> deleteAccount() async {
     try{
-      final response = await dioClient.dio.delete('api/auth/delete');
+      final response = await dioClient.dio.delete(Urls.deleteAccount);
       print('Akun berhasil dihapus: ${response.data}');
     } on DioException catch (e) {
       final data = e.response?.data;

@@ -27,33 +27,38 @@ class _ChatScreenState extends State<ChatScreen> {
   final SocketService socketService = SocketService();
 
   late List<Map<String, dynamic>> messages = [];
+  late Function(dynamic) messageListener;
 
   @override
   void initState() {
     super.initState();
     loadMessages();
-    socketService.addPrivateMessageListener((data) {
-      if (!mounted) return;
 
+    messageListener = (data) {
+      if (!mounted) return;
       if (data['from'] == widget.contactId) {
-        setState(() {
-          messages.add({
-            "text": data['message'],
-            "isMe": false,
-            "timestamp": socketService.formatTimestamp(
-              data['timestamp'] ?? DateTime.now().toIso8601String(),
-            ),
+        final alreadyExists = messages.any((msg) =>
+        msg['text'] == data['message'] && msg['isMe'] == false);
+        if (!alreadyExists) {
+          setState(() {
+            messages.add({
+              "text": data['message'],
+              "isMe": false,
+              "timestamp": socketService.formatTimestamp(
+                data['timestamp'] ?? DateTime.now().toIso8601String(),
+              ),
+            });
           });
-        });
+        }
       }
-    });
+    };
+
+    socketService.addPrivateMessageListener(messageListener);
   }
 
   Future<void> loadMessages() async {
     try {
-      final fetchedMessages = await messageService.fetchMessages(
-        widget.contactId,
-      );
+      final fetchedMessages = await messageService.fetchMessages(widget.contactId);
       final prefs = await SharedPreferences.getInstance();
       final myUserId = prefs.getString('userId');
 
@@ -73,14 +78,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    socketService.removePrivateMessageListener(messageListener);
     messageController.dispose();
-    socketService.removePrivateMessageListener((data) {
-      if (data['from'] == widget.contactId) {
-        setState(() {
-          messages.removeWhere((msg) => msg['text'] == data['message']);
-        });
-      }
-    });
     super.dispose();
   }
 
@@ -106,28 +105,34 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Row(
-        children: [
-          CircleAvatar(
-            radius: 20,
-              backgroundImage: NetworkImage(widget.contactProfile ?? 'https://sukafakta.com/wp-content/uploads/2024/06/Fakta-Unik-Monyet-Si-Cerdas-yang-Tahan-Banting-.webp')
-          ),
-          SizedBox(width: 10,),
-          Text(widget.contactName),
-          Spacer(),
-          ElevatedButton(onPressed: () async {
-            await messageService.deleteChatHistory(widget.contactId);
-            setState(() {
-              messages.clear();
-            });
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Chat berhasil dihapus")),
-            );
-          },
-              child: Text('Hapus Chat')
-          )
-        ],
-      )),
+      appBar: AppBar(
+        title: Row(
+          children: [
+            CircleAvatar(
+              radius: 20,
+              backgroundImage: NetworkImage(
+                widget.contactProfile ??
+                    'https://sukafakta.com/wp-content/uploads/2024/06/Fakta-Unik-Monyet-Si-Cerdas-yang-Tahan-Banting-.webp',
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(widget.contactName),
+            const Spacer(),
+            ElevatedButton(
+              onPressed: () async {
+                await messageService.deleteChatHistory(widget.contactId);
+                setState(() {
+                  messages.clear();
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Chat berhasil dihapus")),
+                );
+              },
+              child: const Text('Hapus Chat'),
+            ),
+          ],
+        ),
+      ),
       body: Column(
         children: [
           const SizedBox(height: 20),
@@ -178,7 +183,10 @@ class _ChatScreenState extends State<ChatScreen> {
                   onSubmitted: (_) => sendMessage(),
                 ),
               ),
-              IconButton(icon: const Icon(Icons.send), onPressed: sendMessage),
+              IconButton(
+                icon: const Icon(Icons.send),
+                onPressed: sendMessage,
+              ),
             ],
           ),
         ],

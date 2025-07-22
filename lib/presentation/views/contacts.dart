@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:simple_talk/core/services/auth_services.dart';
 import 'package:simple_talk/core/services/contact_services.dart';
+import 'package:simple_talk/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:simple_talk/presentation/views/profile.dart';
 import '../../core/services/shared_preference_service.dart';
 import '../../data/models/contact_model.dart';
@@ -15,6 +17,8 @@ class ContactScreen extends StatefulWidget {
 class _ContactScreenState extends State<ContactScreen> {
   late Future<List<ContactModel>> futureContacts;
   final ContactServices _contactServices = ContactServices();
+  final AuthServices _authServices = AuthServices();
+  final DeleteViewModel _deleteViewModel = DeleteViewModel();
 
   @override
   void initState() {
@@ -93,7 +97,26 @@ class _ContactScreenState extends State<ContactScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Kontak Saya')),
+      appBar: AppBar(title: 
+      Row(
+        children: [
+          Text('Kontak Saya'),
+          Spacer(),
+          ElevatedButton(onPressed: () async {
+            final success = await _deleteViewModel.delete();
+            if (success) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Akun berhasil dihapus')),
+              );
+              Navigator.pushReplacementNamed(context, '/login');
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Gagal menghapus akun')),
+              );
+            }
+          }, child: Text('Delete Account'))
+        ],
+      )),
       body: RefreshIndicator(
         onRefresh: () async {
           _loadContacts();
