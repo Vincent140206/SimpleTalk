@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:simple_talk/presentation/views/auth/login.dart';
+import 'package:simple_talk/presentation/views/auth/otp.dart';
 import 'package:simple_talk/presentation/views/auth/register.dart';
 import 'package:simple_talk/presentation/views/chat.dart';
 import 'package:simple_talk/presentation/views/contacts.dart';
@@ -28,6 +29,17 @@ class MyApp extends StatelessWidget {
               contactName: args['contactName'],
               contactEmail: args['contactEmail'],
               contactProfile: args['contactProfile'],
+            ),
+          );
+        }
+
+        if (settings.name == '/otp') {
+          final args = settings.arguments as Map<String, dynamic>;
+          return MaterialPageRoute(
+            builder: (context) => OtpScreen(
+              email: args['email'],
+              name: args['name'],
+              password: args['password'],
             ),
           );
         }

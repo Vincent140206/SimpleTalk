@@ -15,6 +15,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final passwordController = TextEditingController();
 
   final _viewModel = RegisterViewModel();
+  final _sendOTPViewModel = SendOTPViewModel();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -47,15 +48,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   final name = nameController.text;
                   final email = emailController.text;
                   final password = passwordController.text;
-                  _viewModel.register(name, email, password).then((success) {
+                  if(name.isEmpty || email.isEmpty || password.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Semua field harus diisi')),
+                    );
+                    return;
+                  }
+
+                  _sendOTPViewModel.sendOTP(email).then((success) {
                     if(success) {
-                      Navigator.pushReplacementNamed(context, '/login');
+                      Navigator.pushNamed(context, '/otp', arguments: {
+                        'email': email,
+                        'name': name,
+                        'password': password
+                      });
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Register gagal')),
+                        SnackBar(content: Text('Gagal mengirim OTP')),
                       );
                     }
                   });
+
+                  // _viewModel.register(name, email, password).then((success) {
+                  //   if(success) {
+                  //     Navigator.pushReplacementNamed(context, '/login');
+                  //   } else {
+                  //     ScaffoldMessenger.of(context).showSnackBar(
+                  //       SnackBar(content: Text('Register gagal')),
+                  //     );
+                  //   }
+                  // });
                 },
                 child: Text('Regist')
             ),

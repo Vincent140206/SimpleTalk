@@ -95,4 +95,51 @@ class AuthServices {
     }
   }
 
+  Future<void> sendOTP(String email) async {
+    try {
+      final response = await dioClient.dio.post(
+        Urls.sendOTP,
+        data: {'email': email},
+      );
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw Exception('Failed to send OTP with status: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      final errorMessage = e.response?.data['message'] ?? 'Failed to send OTP';
+      print('Send OTP error: $errorMessage');
+      throw Exception(errorMessage);
+    } catch (e) {
+      print('Unexpected error: $e');
+      throw Exception('Unexpected error: $e');
+    }
+  }
+
+  Future<void> verifyOTP(String email, String otp) async {
+    try {
+      final response = await dioClient.dio.post(
+        Urls.verifyOTP,
+        data: {
+          'email': email,
+          'otp': otp
+        },
+      );
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw Exception(
+            'OTP verification failed with status: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      final errorMessage = e.response?.data['message'] ??
+          'OTP verification failed';
+      print('OTP verification error: $errorMessage');
+      throw Exception(errorMessage);
+    } catch (e) {
+      print('Unexpected error: $e');
+      throw Exception('Unexpected error: $e');
+    }
+  }
+
 }

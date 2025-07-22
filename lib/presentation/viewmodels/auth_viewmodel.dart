@@ -59,3 +59,31 @@ class DeleteViewModel {
     }
   }
 }
+
+class SendOTPViewModel {
+  final AuthServices _otpService = AuthServices();
+
+  Future<bool> sendOTP(String email) async {
+    try {
+      await _otpService.sendOTP(email);
+      return true;
+    } catch (e) {
+      print('Gagal mengirim OTP: $e');
+      return false;
+    }
+  }
+}
+
+class VerifyOTPViewModel {
+  final AuthServices _otpService = AuthServices();
+
+  Future<bool> verifyOTP(String email, String otp) async {
+    try {
+      await _otpService.verifyOTP(email, otp);
+      return true;
+    } catch (e) {
+      print('Gagal verifikasi OTP: $e');
+      return false;
+    }
+  }
+}
