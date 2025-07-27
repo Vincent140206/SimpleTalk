@@ -26,41 +26,30 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController messageController = TextEditingController();
   final SocketService socketService = SocketService();
 
-  late List<Map<String, dynamic>> messages = [];
-  late Function(dynamic) messageListener;
+  final ScrollController scrollController = ScrollController();
+
+  List<Map<String, dynamic>> messages = [];
+  String? myUserId;
 
   @override
   void initState() {
     super.initState();
-    loadMessages();
+    initializeChat();
+  }
 
-    messageListener = (data) {
-      if (!mounted) return;
-      if (data['from'] == widget.contactId) {
-        final alreadyExists = messages.any((msg) =>
-        msg['text'] == data['message'] && msg['isMe'] == false);
-        if (!alreadyExists) {
-          setState(() {
-            messages.add({
-              "text": data['message'],
-              "isMe": false,
-              "timestamp": socketService.formatTimestamp(
-                data['timestamp'] ?? DateTime.now().toIso8601String(),
-              ),
-            });
-          });
-        }
-      }
-    };
+  Future<void> initializeChat() async {
+    final prefs = await SharedPreferences.getInstance();
+    myUserId = prefs.getString('userId');
 
-    socketService.addPrivateMessageListener(messageListener);
+    await loadMessages();
+
+    socketService.addPrivateMessageListener(_onMessageReceived);
   }
 
   Future<void> loadMessages() async {
     try {
-      final fetchedMessages = await messageService.fetchMessages(widget.contactId);
-      final prefs = await SharedPreferences.getInstance();
-      final myUserId = prefs.getString('userId');
+      final fetchedMessages = await messageService.fetchMessages(
+          widget.contactId);
 
       setState(() {
         messages = fetchedMessages.map((msg) {
@@ -71,16 +60,49 @@ class _ChatScreenState extends State<ChatScreen> {
           };
         }).toList();
       });
+
+      // Scroll to bottom
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (scrollController.hasClients) {
+          scrollController.jumpTo(scrollController.position.maxScrollExtent);
+        }
+      });
     } catch (e) {
       print('Error loading messages: $e');
     }
   }
 
-  @override
-  void dispose() {
-    socketService.removePrivateMessageListener(messageListener);
-    messageController.dispose();
-    super.dispose();
+  void _onMessageReceived(dynamic data) {
+    if (!mounted) return;
+    if (data['from'] == widget.contactId) {
+      final formattedTime = socketService.formatTimestamp(
+          data['timestamp'] ?? DateTime.now().toIso8601String());
+      final alreadyExists = messages.any((msg) =>
+      msg['text'] == data['message'] &&
+          msg['timestamp'] == formattedTime &&
+          msg['isMe'] == false);
+
+      if (!alreadyExists) {
+        setState(() {
+          messages.add({
+            "text": data['message'],
+            "isMe": false,
+            "timestamp": formattedTime,
+          });
+        });
+
+        // Scroll to bottom
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (scrollController.hasClients) {
+            scrollController.animateTo(
+              scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          }
+        });
+      }
+    }
   }
 
   void sendMessage() {
@@ -99,7 +121,25 @@ class _ChatScreenState extends State<ChatScreen> {
       });
 
       messageController.clear();
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (scrollController.hasClients) {
+          scrollController.animateTo(
+            scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
     }
+  }
+
+  @override
+  void dispose() {
+    socketService.removePrivateMessageListener(_onMessageReceived);
+    messageController.dispose();
+    scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -135,9 +175,10 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       body: Column(
         children: [
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
           Expanded(
             child: ListView.builder(
+              controller: scrollController,
               itemCount: messages.length,
               itemBuilder: (_, index) {
                 final msg = messages[index];
@@ -156,6 +197,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(msg['text']),
+                        const SizedBox(height: 4),
                         Text(
                           msg['timestamp'],
                           style: const TextStyle(
@@ -170,7 +212,7 @@ class _ChatScreenState extends State<ChatScreen> {
               },
             ),
           ),
-          const Divider(),
+          const Divider(height: 1),
           Row(
             children: [
               Expanded(

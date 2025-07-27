@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:simple_talk/core/services/auth_services.dart';
 import 'package:simple_talk/core/services/contact_services.dart';
 import 'package:simple_talk/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:simple_talk/presentation/views/profile.dart';
@@ -17,7 +16,6 @@ class ContactScreen extends StatefulWidget {
 class _ContactScreenState extends State<ContactScreen> {
   late Future<List<ContactModel>> futureContacts;
   final ContactServices _contactServices = ContactServices();
-  final AuthServices _authServices = AuthServices();
   final DeleteViewModel _deleteViewModel = DeleteViewModel();
 
   @override
