@@ -10,18 +10,38 @@ import '../../presentation/views/auth/login.dart';
 
 class AuthServices {
   final dioClient = DioClient();
-  Urls urls = Urls();
-
   Future<void> checkLoginStatus(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
     final userId = prefs.getString('userId');
 
     if (token != null && userId != null) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => ContactScreen(userId: userId)),
-      );
+      try {
+        final response = await dioClient.dio.get(
+          Urls.checkToken,
+          options: Options(
+            headers: { 'Authorization': 'Bearer $token' },
+          ),
+        );
+
+        if (response.statusCode == 200) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => ContactScreen(userId: userId)),
+          );
+        } else {
+          await prefs.clear();
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
+          );
+        }
+      } catch (e) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      }
     } else {
       Navigator.pushReplacement(
         context,
@@ -30,6 +50,7 @@ class AuthServices {
     }
   }
 
+  Urls urls = Urls();
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
