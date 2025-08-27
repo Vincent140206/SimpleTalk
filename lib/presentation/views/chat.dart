@@ -49,7 +49,8 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> loadMessages() async {
     try {
       final fetchedMessages = await messageService.fetchMessages(
-          widget.contactId);
+        widget.contactId,
+      );
 
       setState(() {
         messages = fetchedMessages.map((msg) {
@@ -76,11 +77,14 @@ class _ChatScreenState extends State<ChatScreen> {
     if (!mounted) return;
     if (data['from'] == widget.contactId) {
       final formattedTime = socketService.formatTimestamp(
-          data['timestamp'] ?? DateTime.now().toIso8601String());
-      final alreadyExists = messages.any((msg) =>
-      msg['text'] == data['message'] &&
-          msg['timestamp'] == formattedTime &&
-          msg['isMe'] == false);
+        data['timestamp'] ?? DateTime.now().toIso8601String(),
+      );
+      final alreadyExists = messages.any(
+        (msg) =>
+            msg['text'] == data['message'] &&
+            msg['timestamp'] == formattedTime &&
+            msg['isMe'] == false,
+      );
 
       if (!alreadyExists) {
         setState(() {
@@ -144,6 +148,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final width = size.width;
+    final height = size.height;
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -186,26 +193,31 @@ class _ChatScreenState extends State<ChatScreen> {
                   alignment: msg['isMe']
                       ? Alignment.centerRight
                       : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.all(8),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: msg['isMe'] ? Colors.blue[100] : Colors.grey[300],
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(msg['text']),
-                        const SizedBox(height: 4),
-                        Text(
-                          msg['timestamp'],
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: Colors.black54,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: width * 0.8),
+                    child: Container(
+                      margin: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: msg['isMe']
+                            ? Colors.blue[100]
+                            : Colors.grey[300],
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(msg['text']),
+                          const SizedBox(height: 4),
+                          Text(
+                            msg['timestamp'],
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: Colors.black54,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -225,10 +237,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   onSubmitted: (_) => sendMessage(),
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.send),
-                onPressed: sendMessage,
-              ),
+              IconButton(icon: const Icon(Icons.send), onPressed: sendMessage),
             ],
           ),
         ],
