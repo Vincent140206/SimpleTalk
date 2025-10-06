@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_talk/core/constants/url.dart';
 import 'package:simple_talk/core/services/dio_client.dart';
 import 'package:simple_talk/presentation/views/contacts.dart';
-
 import '../../presentation/views/auth/login.dart';
 
 class AuthServices {

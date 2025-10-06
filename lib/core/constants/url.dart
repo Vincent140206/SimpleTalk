@@ -1,5 +1,5 @@
 class Urls {
-  static const String baseUrl = 'http://10.0.2.2:5000/';
+  static const String baseUrl = 'https://pg-vincent.bccdev.id';
 
   // Authentication and User URLs
   static const String login = '/api/auth/login';

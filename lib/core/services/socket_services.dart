@@ -1,14 +1,16 @@
-import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
-import '../constants/network_config.dart';
 import 'package:intl/intl.dart';
+
+import '../constants/url.dart';
 
 typedef MessageCallback = void Function(Map<String, dynamic> data);
 
 class SocketService {
   static final SocketService _instance = SocketService._internal();
   factory SocketService() => _instance;
+  static const baseUrl = "https://pg-vincent.bccdev.id";
+  Urls urls = Urls();
   SocketService._internal();
 
   IO.Socket? socket;
@@ -31,11 +33,13 @@ class SocketService {
 
     if (userId == null || userId.isEmpty) return;
 
-    final baseUrl = Platform.isAndroid ? emulatorIP : localIP;
-
     socket = IO.io(
-      'http://$baseUrl:5000',
-      IO.OptionBuilder().setTransports(['websocket']).disableAutoConnect().build(),
+      baseUrl,
+      IO.OptionBuilder()
+          .setTransports(['websocket'])
+          .setPath('/socket.io')
+          .disableAutoConnect()
+          .build(),
     );
 
     socket!.onConnect((_) {
@@ -53,7 +57,6 @@ class SocketService {
     socket!.onDisconnect((_) => print('Disconnected'));
     socket!.onConnectError((e) => print('Connect error: $e'));
     socket!.onError((e) => print('Socket error: $e'));
-
     socket!.connect();
   }
 

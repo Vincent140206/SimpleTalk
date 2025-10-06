@@ -9,11 +9,10 @@ class DioClient {
   DioClient._internal(this.dio);
 
   factory DioClient() {
-    final baseUrl = Platform.isAndroid ? emulatorIP : localIP;
     final dio = Dio(BaseOptions(
-      baseUrl: 'http://$baseUrl:5000/',
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
+      baseUrl: 'https://pg-vincent.bccdev.id',
+      connectTimeout: const Duration(seconds: 60),
+      receiveTimeout: const Duration(seconds: 60),
       headers: {'Content-Type': 'application/json'},
     ))
       ..interceptors.add(InterceptorsWrapper(
